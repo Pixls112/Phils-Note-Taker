@@ -8,24 +8,52 @@ const fs = require('fs')
 const noteData = require('./Develop/db/db.json')
 
 
+app.get('/', (req, res) =>
+    res.sendFile(path.join(__dirname, index)));
 
-app.get('/', (req, res) => 
-res.sendFile(path.join(__dirname, index)));
+app.get('/notes', (req, res) =>
+    res.sendFile(path.join(__dirname, note)));
 
-app.get('/notes', (req, res) => 
-res.sendFile(path.join(__dirname, note)));
-
-app.get('*', (req, res) => 
-res.sendFile(path.join(__dirname, index)));
+app.get('*', (req, res) =>
+    res.sendFile(path.join(__dirname, index)));
 
 app.get('/api/notes', (req, res) => {
     fs.readFile(noteData, (err, data) => {
         if (err) {
             console.error(err);
         } else {
-            return res.json(data)
+            res.json(JSON.parse(data))
         }
     })
+})
+
+app.post('/api/notes', (req, res) => {
+    const { title, text } = req.body
+
+    if (req.body) {
+        const newNote = {
+            title,
+            text
+        };
+
+        fs.readFile(noteData, 'utf8', (err, data) => {
+            if (err) {
+                console.error(err);
+            } else {
+                const combinedNotes = JSON.parse(data);
+                combinedNotes.push(newNote);
+
+                fs.writeFile(noteData, JSON.stringify(combinedNotes), (err) => {
+                    if (err) {
+                        console.error(err);
+                    } else {
+                        res.json("success")
+                    }
+                })
+            }
+        })
+    }
+
 })
 
 app.listen(PORT, () =>
