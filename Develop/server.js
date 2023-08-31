@@ -2,10 +2,13 @@ const express = require('express');
 const path = require('path')
 const app = express()
 const PORT = process.env.PORT || 3001;
-const index = './Develop/public/index.html'
-const note = './Develop/public/notes.html'
+const index = './public/index.html'
+const note = './public/notes.html'
 const fs = require('fs')
-const noteData = require('./Develop/db/db.json')
+const noteData = require('./db/db.json')
+
+app.use(express.static('public'))
+app.use(express.json())
 
 
 app.get('/', (req, res) =>
@@ -16,6 +19,7 @@ app.get('/notes', (req, res) =>
 
 app.get('*', (req, res) =>
     res.sendFile(path.join(__dirname, index)));
+
 
 app.get('/api/notes', (req, res) => {
     fs.readFile(noteData, (err, data) => {
@@ -29,32 +33,23 @@ app.get('/api/notes', (req, res) => {
 
 app.post('/api/notes', (req, res) => {
     const { title, text } = req.body
-
     if (req.body) {
         const newNote = {
             title,
             text
         };
+        noteData.push(newNote)
 
-        fs.readFile(noteData, 'utf8', (err, data) => {
-            if (err) {
-                console.error(err);
-            } else {
-                const combinedNotes = JSON.parse(data);
-                combinedNotes.push(newNote);
-
-                fs.writeFile(noteData, JSON.stringify(combinedNotes), (err) => {
-                    if (err) {
-                        console.error(err);
+                fs.writeFile('./db/db.json', JSON.stringify(newNote), (err) => {
+                    if (err){
+                        console.error(err)
                     } else {
-                        res.json("success")
+                        res.json('success')
                     }
                 })
             }
         })
-    }
 
-})
 
 app.listen(PORT, () =>
     console.log(`App listening on http://localHost:${PORT}`))
