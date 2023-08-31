@@ -38,17 +38,25 @@ app.post('/api/notes', (req, res) => {
             title,
             text
         };
-        noteData.push(newNote)
+    
+        fs.readFile('./db/db.json',(err, data) => {
+            if (err) {
+                console.error(err);
+            } else {
+                noteData.push(newNote)
+            }
 
-                fs.writeFile('./db/db.json', JSON.stringify(newNote), (err) => {
-                    if (err){
-                        console.error(err)
-                    } else {
-                        res.json('success')
-                    }
-                })
+        })
+
+        fs.writeFile('./db/db.json', JSON.stringify(noteData), (err) => {
+            if (err) {
+                console.error(err)
+            } else {
+                res.json(noteData)
             }
         })
+    }
+})
 
 
 app.listen(PORT, () =>
