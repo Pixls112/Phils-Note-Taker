@@ -10,6 +10,22 @@ const noteData = require('./db/db.json')
 app.use(express.static('public'))
 app.use(express.json())
 
+const writeToFile = (destination, content) =>
+  fs.writeFile(destination, JSON.stringify(content, null, 4), (err) =>
+    err ? console.error(err) : console.info(`\nData written to ${destination}`)
+  );
+
+const readAndAppend = (content, file) => {
+    fs.readFile(file, 'utf8', (err, data) => {
+      if (err) {
+        console.error(err);
+      } else {
+        const parsedData = JSON.parse(data);
+        parsedData.push(content);
+        writeToFile(file, parsedData);
+      }
+    });
+  };
 
 app.get('/', (req, res) =>
     res.sendFile(path.join(__dirname, index)));
@@ -17,12 +33,12 @@ app.get('/', (req, res) =>
 app.get('/notes', (req, res) =>
     res.sendFile(path.join(__dirname, note)));
 
-app.get('*', (req, res) =>
-    res.sendFile(path.join(__dirname, index)));
+// app.get('*', (req, res) =>
+// res.sendFile(path.join(__dirname, index)));
 
 
 app.get('/api/notes', (req, res) => {
-    fs.readFile(noteData, (err, data) => {
+    fs.readFile('./db/db.json', (err, data) => {
         if (err) {
             console.error(err);
         } else {
@@ -38,25 +54,9 @@ app.post('/api/notes', (req, res) => {
             title,
             text
         };
-    
-        fs.readFile('./db/db.json',(err, data) => {
-            if (err) {
-                console.error(err);
-            } else {
-                noteData.push(newNote)
-            }
-
-        })
-
-        fs.writeFile('./db/db.json', JSON.stringify(noteData), (err) => {
-            if (err) {
-                console.error(err)
-            } else {
-                res.json(noteData)
-            }
-        })
-    }
-})
+        readAndAppend(newNote, './db/db.json');
+      }
+    });
 
 
 app.listen(PORT, () =>
