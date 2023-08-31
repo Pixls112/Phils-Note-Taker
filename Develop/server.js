@@ -5,7 +5,10 @@ const PORT = process.env.PORT || 3001;
 const index = './public/index.html'
 const note = './public/notes.html'
 const fs = require('fs')
-const noteData = require('./db/db.json')
+const { v4 : uuidv4 } = require('uuid');
+const newId = uuidv4()
+
+
 
 app.use(express.static('public'))
 app.use(express.json())
@@ -58,10 +61,14 @@ app.post('/api/notes', (req, res) => {
     if (req.body) {
         const newNote = {
             title,
-            text
+            text,
+            newId,
         };
         readAndAppend(newNote, './db/db.json');
-      }
+        res.json(`Note added Sucessfully`);
+        } else {
+        res.error('Error in adding note');
+        }
     });
 
 
